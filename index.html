@@ -385,20 +385,23 @@
     else{
       if(t<=markStart){toast('终点需在起点之后');markStart=null;document.getElementById('markBtn').classList.remove('on');return;}
       const name=prompt('给这段起个名字（如 副歌 / Dance Break）：','段落')||'段落';
-      const start=markStart;
       currentVideo.segments=currentVideo.segments||[];
-      currentVideo.segments.push({name,start,end:t});
+      currentVideo.segments.push({name,start:markStart,end:t});
       currentVideo.segments.sort((a,b)=>a.start-b.start);
-      save(currentVideo);
-      const idx=currentVideo.segments.findIndex(s=>s.start===start&&s.end===t);
-      loopSeg=idx;segArea.classList.add('show');renderSegments();
+      save(currentVideo);renderSegments();
+      segArea.classList.add('show');
       markStart=null;document.getElementById('markBtn').classList.remove('on');
-      video.currentTime=start;
-      toast('已添加「'+name+'」并开始循环，再点它可停止');
+      toast('已添加「'+name+'」，点它开始循环');
     }
   };
-  function toggleLoop(idx){loopSeg=(loopSeg===idx)?null:idx;renderSegments();
-    toast(loopSeg===null?'已退出循环':'循环：'+(currentVideo.segments[idx].name));}
+  function toggleLoop(idx){
+    if(loopSeg===idx){loopSeg=null;renderSegments();toast('已退出循环');return;}
+    loopSeg=idx;renderSegments();
+    const s=currentVideo.segments[idx];
+    video.currentTime=s.start;
+    video.play();
+    toast('循环：'+s.name);
+  }
   function deleteSeg(idx){currentVideo.segments.splice(idx,1);save(currentVideo);
     if(loopSeg===idx)loopSeg=null;else if(loopSeg>idx)loopSeg--;renderSegments();}
 
