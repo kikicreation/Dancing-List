@@ -1,0 +1,442 @@
+<title>New Dance · 扒舞助手</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+  :root{
+    --mint:#A8E6CF; --sky:#A0D8F1; --pink:#FFB7D5; --butter:#FFF3B0;
+    --lilac:#D5C6F0; --cream:#FFFBF5; --ink:#4A4458; --muted:#9A94A8;
+    --card:#FFFFFF; --line:#F0E9EF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Nunito','PingFang SC','Microsoft YaHei',sans-serif;
+    background:linear-gradient(135deg,#FDF6F8 0%,#F2FBF7 30%,#F3F7FE 65%,#FBF3FC 100%);
+    background-attachment:fixed;color:var(--ink);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+    position:relative;overflow-x:hidden;
+  }
+  /* 手绘漂浮装饰 */
+  .deco{position:fixed;z-index:0;pointer-events:none;opacity:.5;font-size:30px;filter:saturate(.9);}
+  .d1{top:8%;left:5%;font-size:44px;opacity:.4;}
+  .d2{top:14%;right:8%;font-size:36px;opacity:.45;}
+  .d3{bottom:10%;left:8%;font-size:38px;opacity:.4;}
+  .d4{bottom:16%;right:6%;font-size:30px;opacity:.45;}
+  .d5{top:45%;left:3%;font-size:26px;opacity:.35;}
+
+  .app{
+    position:relative;z-index:1;
+    width:min(1280px,100%);height:min(860px,92vh);
+    background:var(--card);border-radius:30px;overflow:hidden;
+    box-shadow:0 26px 60px -28px rgba(120,100,150,.35);
+    border:2.5px solid #F4E7EE;
+    display:flex;flex-direction:column;
+  }
+  /* 顶栏 */
+  header{
+    display:flex;align-items:center;gap:14px;
+    padding:16px 24px;border-bottom:2.5px dashed #F0E3EC;
+    background:var(--card);flex:none;position:relative;
+  }
+  .logo-wrap{display:flex;align-items:center;gap:10px;}
+  .logo-blob{width:42px;height:42px;border-radius:60% 40% 55% 45%/50% 55% 45% 50%;
+    background:linear-gradient(135deg,var(--pink),var(--lilac));
+    display:flex;align-items:center;justify-content:center;font-size:21px;flex:none;}
+  .logo{font-family:'Fredoka',sans-serif;font-size:22px;font-weight:700;
+    background:linear-gradient(90deg,#7FB8E8,#B49BE0);
+    -webkit-background-clip:text;background-clip:text;color:transparent;}
+  .logo-sub{font-size:12.5px;color:var(--muted);font-weight:700;margin-top:1px;}
+  .header-right{margin-left:auto;display:flex;align-items:center;gap:11px;}
+  .total-time{display:flex;align-items:center;gap:5px;font-family:'Fredoka',sans-serif;
+    font-size:13px;font-weight:600;color:#8E7FB5;background:#F3EDFB;padding:7px 14px;
+    border-radius:99px;border:2px solid #E8DEF5;}
+  .btn{
+    padding:11px 18px;border:none;border-radius:99px;cursor:pointer;
+    font-size:13.5px;font-weight:800;font-family:inherit;display:flex;align-items:center;gap:7px;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{transform:scale(.96);}
+  .btn-primary{background:linear-gradient(90deg,#8FCDE8,#B49BE0);color:#fff;
+    box-shadow:0 7px 18px -7px rgba(140,120,200,.5);}
+  .btn-ghost{background:#FFF7FA;color:#8E7FB5;border:2px dashed #E4D3E8;}
+  .btn-ghost:hover{background:#FBEFF6;}
+
+  /* 主体 */
+  .main{flex:1;display:flex;min-height:0;}
+  /* 左栏 舞蹈库 */
+  aside{
+    width:340px;flex:none;border-right:2.5px dashed #F0E3EC;
+    display:flex;flex-direction:column;background:var(--cream);overflow-y:auto;
+  }
+  .aside-head{padding:18px 20px 10px;font-family:'Fredoka',sans-serif;font-size:15px;font-weight:600;
+    display:flex;align-items:center;justify-content:space-between;}
+  .aside-head small{font-size:12px;color:var(--muted);font-weight:700;font-family:'Nunito',sans-serif;}
+  .video-list{padding:6px 14px 22px;display:flex;flex-direction:column;gap:11px;}
+  .v-item{
+    display:flex;gap:11px;align-items:center;padding:11px;border-radius:20px;
+    background:var(--card);border:2px solid var(--line);cursor:pointer;
+    transition:transform .13s ease, border-color .13s ease;
+  }
+  .v-item:hover{border-color:var(--lilac);transform:translateY(-1px);}
+  .v-item.on{border-color:var(--lilac);background:linear-gradient(90deg,#FFF0F6,#F4EEFC);}
+  .v-thumb{width:52px;height:52px;flex:none;
+    border-radius:55% 45% 60% 40%/55% 50% 50% 45%;
+    display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;
+    background:linear-gradient(135deg,#8FCDE8,#B49BE0);}
+  .v-info{flex:1;min-width:0;}
+  .v-name{font-family:'Fredoka',sans-serif;font-size:14.5px;font-weight:600;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .v-meta{display:flex;align-items:center;gap:7px;margin-top:5px;flex-wrap:wrap;}
+  .tag{font-size:10px;font-weight:800;padding:2px 9px;border-radius:99px;letter-spacing:.3px;border:1.5px solid transparent;}
+  .tag.learning{background:#E6F7EE;color:#5BAE84;border-color:#CBEEDD;}
+  .tag.done{background:#F3EDFB;color:#8E7FB5;border-color:#E4D8F5;}
+  .v-time{font-size:10.5px;color:#7FA8C8;font-weight:700;font-family:'Fredoka',sans-serif;}
+  .v-del{flex:none;width:24px;height:24px;border:none;border-radius:50%;background:transparent;
+    color:#C8BFD6;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .v-del:hover{background:#FDECEC;color:#E57373;}
+  .empty{margin:16px;padding:34px 18px;border-radius:22px;text-align:center;
+    border:2.5px dashed #E4D3E8;color:var(--muted);font-weight:700;font-size:13.5px;line-height:1.8;}
+  .empty .big{font-size:36px;display:block;margin-bottom:8px;}
+
+  /* 右栏 播放器 */
+  section.player{flex:1;display:flex;flex-direction:column;min-width:0;background:#1D1A26;}
+  .stage{flex:1;display:flex;align-items:center;justify-content:center;background:#1D1A26;
+    position:relative;min-height:0;overflow:hidden;}
+  video{max-width:100%;max-height:100%;width:auto;height:auto;display:block;background:#000;border-radius:8px;}
+  video.mirrored{transform:scaleX(-1);}
+  .mirror-badge{position:absolute;top:14px;right:14px;font-size:11px;font-weight:800;
+    padding:5px 12px;border-radius:99px;background:rgba(0,0,0,.4);color:#fff;letter-spacing:.4px;
+    backdrop-filter:blur(4px);display:none;}
+  .mirror-badge.show{display:block;}
+  .no-video{color:#8E86A8;text-align:center;font-weight:700;font-size:14px;line-height:2;}
+  .no-video .big{font-size:44px;display:block;margin-bottom:8px;}
+
+  /* 控制栏 */
+  .controls{display:flex;align-items:center;gap:9px;padding:13px 20px;flex:none;
+    background:var(--card);border-top:2.5px dashed #F0E3EC;flex-wrap:wrap;}
+  .ctl{display:flex;align-items:center;gap:6px;padding:9px 13px;border-radius:99px;
+    background:#FBF6FA;border:2px solid var(--line);cursor:pointer;
+    font-size:12.5px;font-weight:800;color:var(--muted);font-family:inherit;white-space:nowrap;}
+  .ctl .ic{font-size:15px;}
+  .ctl.on{background:linear-gradient(135deg,#A8E6CF,#A0D8F1);color:#2E5A4E;border-color:transparent;}
+  .ctl:disabled{opacity:.4;cursor:not-allowed;}
+  .speed-panel{display:none;gap:6px;}
+  .speed-panel.show{display:flex;}
+  .speed-opt{padding:6px 12px;border-radius:99px;font-size:12px;font-weight:800;cursor:pointer;
+    background:#F6F0F8;color:var(--muted);font-family:'Fredoka',sans-serif;border:2px solid transparent;}
+  .speed-opt.on{background:linear-gradient(135deg,#FFB7D5,#D5C6F0);color:#6A4E7A;}
+
+  /* 段落 */
+  .seg-area{display:none;padding:0 20px 15px;background:var(--card);flex:none;border-top:2.5px dashed #F0E3EC;}
+  .seg-area.show{display:block;}
+  .seg-head{display:flex;align-items:center;justify-content:space-between;padding:12px 0 8px;}
+  .seg-head b{font-family:'Fredoka',sans-serif;font-size:13.5px;font-weight:600;}
+  .seg-head small{font-size:11px;color:var(--muted);font-weight:700;}
+  .seg-list{display:flex;flex-wrap:wrap;gap:8px;max-height:110px;overflow-y:auto;padding-bottom:4px;}
+  .seg{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:99px;
+    background:#FBF6FA;border:2px solid var(--line);cursor:pointer;font-size:12px;font-weight:700;}
+  .seg.on{background:linear-gradient(90deg,#FFF0F6,#F4EEFC);border-color:var(--lilac);}
+  .seg .loop{font-size:13px;opacity:.35;}
+  .seg.on .loop{opacity:1;}
+  .seg .del{color:#C8BFD6;font-size:13px;margin-left:2px;}
+  .seg .del:hover{color:#E57373;}
+  .seg-empty{font-size:12px;color:var(--muted);font-weight:600;padding:6px 0;}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(74,68,88,.4);display:none;
+    align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(3px);}
+  .modal.show{display:flex;}
+  .modal-box{background:#FFFBF7;border-radius:26px;padding:24px;width:min(420px,90vw);
+    border:2.5px solid #F0E3EC;box-shadow:0 20px 50px -20px rgba(90,70,120,.4);}
+  .modal-title{font-family:'Fredoka',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px;}
+  .modal-sub{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:16px;}
+  .link-input{width:100%;padding:13px 15px;border-radius:14px;border:2px solid var(--line);
+    font-size:14px;font-family:inherit;color:var(--ink);background:#fff;outline:none;margin-bottom:12px;}
+  .link-input:focus{border-color:var(--sky);}
+  .modal-hint{font-size:11.5px;color:#C08A9A;font-weight:600;background:#FFF0F4;
+    padding:9px 12px;border-radius:12px;margin-bottom:16px;line-height:1.6;}
+  .modal-actions{display:flex;gap:10px;}
+  .modal-actions .btn{flex:1;justify-content:center;}
+
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(10px);
+    background:rgba(74,68,88,.95);color:#fff;font-size:13px;font-weight:700;padding:11px 20px;
+    border-radius:99px;opacity:0;pointer-events:none;transition:all .25s ease;z-index:300;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:860px){
+    .app{height:auto;}
+    .main{flex-direction:column;}
+    aside{width:100%;border-right:none;border-bottom:2.5px dashed #F0E3EC;max-height:40vh;}
+    section.player{min-height:420px;}
+  }
+</style>
+
+<!-- 手绘漂浮装饰 -->
+<div class="deco d1">☁️</div>
+<div class="deco d2">⭐</div>
+<div class="deco d3">🎀</div>
+<div class="deco d4">☁️</div>
+<div class="deco d5">✨</div>
+
+<div class="app">
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-blob">🐰</div>
+      <div>
+        <div class="logo">New Dance</div>
+        <div class="logo-sub">Kpop 扒舞练习助手</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="total-time" id="totalTime">⏱ 0m</div>
+      <button class="btn btn-ghost" id="linkBtn">🔗 链接导入</button>
+      <label class="btn btn-primary" for="fileInput" style="cursor:pointer">＋ 上传视频</label>
+      <input type="file" id="fileInput" accept="video/*" hidden>
+    </div>
+  </header>
+
+  <div class="main">
+    <!-- 左栏 舞蹈库 -->
+    <aside>
+      <div class="aside-head">Dancing List <small id="countLabel">0 支</small></div>
+      <div class="video-list" id="videoList">
+        <div class="empty" id="emptyBox">
+          <span class="big">🎬</span>还没有舞蹈<br>点「＋ 上传视频」或「🔗 链接导入」
+        </div>
+      </div>
+    </aside>
+
+    <!-- 右栏 播放器 -->
+    <section class="player">
+      <div class="stage">
+        <div class="no-video" id="noVideo"><span class="big">💃</span>选择左侧一支舞，开始练习</div>
+        <video id="video" controls playsinline></video>
+        <div class="mirror-badge" id="mirrorBadge">镜面开启</div>
+      </div>
+
+      <div class="controls">
+        <div class="ctl" id="playBtn"><span class="ic">▶</span>播放</div>
+        <div class="ctl" id="mirrorBtn"><span class="ic">🪞</span>镜面</div>
+        <div class="ctl" id="speedBtn"><span class="ic">⏩</span>倍速</div>
+        <div class="speed-panel" id="speedPanel">
+          <button class="speed-opt" data-rate="0.5">0.5x</button>
+          <button class="speed-opt" data-rate="0.75">0.75x</button>
+          <button class="speed-opt" data-rate="0.8">0.8x</button>
+          <button class="speed-opt" data-rate="0.9">0.9x</button>
+          <button class="speed-opt on" data-rate="1.0">1.0x</button>
+          <button class="speed-opt" data-rate="1.1">1.1x</button>
+          <button class="speed-opt" data-rate="1.2">1.2x</button>
+        </div>
+        <div class="ctl" id="markBtn"><span class="ic">✂️</span>标记段落</div>
+        <div class="ctl" id="segToggle"><span class="ic">📋</span>段落</div>
+      </div>
+
+      <div class="seg-area" id="segArea">
+        <div class="seg-head"><b>段落练习</b><small>点「标记段落」：第一次记起点，第二次记终点</small></div>
+        <div class="seg-list" id="segList"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- 链接导入 modal -->
+<div class="modal" id="linkModal">
+  <div class="modal-box">
+    <div class="modal-title">🔗 链接导入</div>
+    <div class="modal-sub">粘贴视频直链，直接加入舞蹈库</div>
+    <input class="link-input" id="linkInput" placeholder="https://example.com/video.mp4">
+    <div class="modal-hint">⚠️ 支持视频「直链」（.mp4 / .webm 等）。抖音 / B站短链需要后端解析，纯网页做不了——请先用手机下载视频，再点「＋ 上传视频」导入。</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeLink()">取消</button>
+      <button class="btn btn-primary" onclick="importLink()">导入</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const DB_NAME = 'dancing-list-db', STORE = 'videos';
+  const video = document.getElementById('video');
+  const videoList = document.getElementById('videoList');
+  const noVideo = document.getElementById('noVideo');
+  const segArea = document.getElementById('segArea');
+  const segList = document.getElementById('segList');
+  const totalTimeEl = document.getElementById('totalTime');
+  const countLabel = document.getElementById('countLabel');
+  const mirrorBadge = document.getElementById('mirrorBadge');
+
+  let currentVideo = null, currentBlobUrl = null, loopSeg = null, markStart = null, practiceTimer = null, allVideos = [];
+  let memoryStore = [], dbOK = true;
+
+  // ---------- 存储（IndexedDB 优先，失败降级内存） ----------
+  function openDB(){return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,1);
+    r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:'id'});};
+    r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
+  });}
+  async function save(rec){
+    if(dbOK){try{const db=await openDB();await new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(rec);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});return;}catch(e){dbOK=false;console.warn('IndexedDB 不可用，降级内存',e);}}
+    const i=memoryStore.findIndex(x=>x.id===rec.id);if(i>=0)memoryStore[i]=rec;else memoryStore.push(rec);
+  }
+  async function loadAll(){
+    if(dbOK){try{const db=await openDB();return await new Promise((res,rej)=>{const tx=db.transaction(STORE,'readonly');const rq=tx.objectStore(STORE).getAll();rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error);});}catch(e){dbOK=false;console.warn('IndexedDB 不可用，降级内存',e);}}
+    return [...memoryStore];
+  }
+  async function remove(id){
+    if(dbOK){try{const db=await openDB();await new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});return;}catch(e){dbOK=false;}}
+    memoryStore=memoryStore.filter(x=>x.id!==id);
+  }
+
+  // ---------- 工具 ----------
+  function fmt(sec){sec=Math.round(sec||0);const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;
+    return h>0?`${h}h${m}m`:(m>0?`${m}m${s}s`:`${s}s`);}
+  function fmtClock(sec){sec=Math.max(0,Math.floor(sec||0));const m=Math.floor(sec/60),s=sec%60;
+    return `${m}:${String(s).padStart(2,'0')}`;}
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+    clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),2200);}
+  function thumbColor(name){let h=0;for(const c of name){h=(h*31+c.charCodeAt(0))%360;}
+    return `linear-gradient(135deg,hsl(${h},72%,72%),hsl(${(h+50)%360},70%,76%))`;}
+
+  // ---------- 渲染 ----------
+  function renderList(){
+    allVideos.sort((a,b)=>(b.lastPractice||b.createdAt)-(a.lastPractice||a.createdAt));
+    countLabel.textContent = allVideos.length + ' 支';
+    let total=0;allVideos.forEach(v=>total+=v.practiceTime||0);
+    totalTimeEl.textContent = '⏱ ' + fmt(total);
+    if(allVideos.length===0){
+      videoList.innerHTML='';
+      const e=document.createElement('div');e.className='empty';e.id='emptyBox';
+      e.innerHTML='<span class="big">🎬</span>还没有舞蹈<br>点「＋ 上传视频」或「🔗 链接导入」';
+      videoList.appendChild(e);return;
+    }
+    videoList.innerHTML='';
+    allVideos.forEach(v=>{
+      const item=document.createElement('div');item.className='v-item'+(currentVideo&&currentVideo.id===v.id?' on':'');
+      item.innerHTML=`<div class="v-thumb" style="background:${thumbColor(v.name)}">🎵</div>
+        <div class="v-info"><div class="v-name"></div>
+          <div class="v-meta"><span class="tag ${v.status}">${v.status==='done'?'已学会':'学习中'}</span>
+          <span class="v-time">⏱ ${fmt(v.practiceTime||0)}</span></div></div>
+        <button class="v-del" title="删除">×</button>`;
+      item.querySelector('.v-name').textContent=v.name;
+      item.onclick=()=>selectVideo(v.id);
+      item.querySelector('.v-del').onclick=(e)=>{e.stopPropagation();removeVideo(v.id);};
+      videoList.appendChild(item);
+    });
+  }
+  function renderSegments(){
+    if(!currentVideo){segList.innerHTML='';return;}
+    const segs=currentVideo.segments||[];
+    if(segs.length===0){segList.innerHTML='<div class="seg-empty">暂无段落。点「标记段落」开始切分。</div>';return;}
+    segList.innerHTML='';
+    segs.forEach((s,idx)=>{
+      const el=document.createElement('div');el.className='seg'+(loopSeg===idx?' on':'');
+      el.innerHTML=`<span class="loop">🔁</span><span>${s.name}</span><span style="color:var(--muted);font-size:11px">${fmtClock(s.start)}-${fmtClock(s.end)}</span><span class="del">×</span>`;
+      el.onclick=()=>toggleLoop(idx);
+      el.querySelector('.del').onclick=(e)=>{e.stopPropagation();deleteSeg(idx);};
+      segList.appendChild(el);
+    });
+  }
+
+  // ---------- 选中 & 播放 ----------
+  function playSrc(v){
+    if(currentBlobUrl){URL.revokeObjectURL(currentBlobUrl);currentBlobUrl=null;}
+    if(v.type==='url'){video.src=v.url;}
+    else{currentBlobUrl=URL.createObjectURL(v.blob);video.src=currentBlobUrl;}
+  }
+  async function selectVideo(id){
+    stopPractice();
+    const v=allVideos.find(x=>x.id===id);if(!v)return;
+    currentVideo=v;
+    playSrc(v);
+    video.style.display='block';noVideo.style.display='none';
+    loopSeg=null;renderList();renderSegments();segArea.classList.add('show');
+  }
+  function removeVideo(id){
+    if(!confirm('确定删除这支舞？删除后不可恢复'))return;
+    remove(id).then(async()=>{
+      if(currentVideo&&currentVideo.id===id){stopPractice();currentVideo=null;video.src='';video.style.display='none';noVideo.style.display='block';segArea.classList.remove('show');}
+      allVideos=await loadAll();renderList();toast('已删除');
+    });
+  }
+
+  // ---------- 练习时长 ----------
+  function startPractice(){stopPractice();practiceTimer=setInterval(()=>{
+    if(currentVideo){currentVideo.practiceTime=(currentVideo.practiceTime||0)+1;
+      currentVideo.lastPractice=Date.now();save(currentVideo);renderList();}},1000);}
+  function stopPractice(){if(practiceTimer){clearInterval(practiceTimer);practiceTimer=null;}}
+
+  // ---------- 上传 & 链接导入 ----------
+  // 上传按钮已改用 <label for="fileInput">，点击 label 直接触发文件选择，无需 JS
+  document.getElementById('fileInput').onchange=async(e=>{
+    const file=e.target.files[0];if(!file)return;
+    try{
+      const rec={id:Date.now(),name:file.name.replace(/\.[^.]+$/,'')||'未命名舞蹈',type:'file',blob:file,
+        status:'learning',practiceTime:0,segments:[],createdAt:Date.now(),lastPractice:Date.now()};
+      await save(rec);allVideos=await loadAll();renderList();await selectVideo(rec.id);
+      toast('已导入：'+rec.name + (dbOK?'':'（当前环境无法持久保存，刷新会丢失）'));
+    }catch(err){toast('导入失败：'+err.message);console.error(err);}
+    e.target.value='';
+  });
+
+  document.getElementById('linkBtn').onclick=()=>document.getElementById('linkModal').classList.add('show');
+  function closeLink(){document.getElementById('linkModal').classList.remove('show');}
+  async function importLink(){
+    const url=document.getElementById('linkInput').value.trim();
+    if(!url){toast('请先粘贴链接');return;}
+    if(/douyin\.com|bilibili\.com|b23\.tv|v\.douyin/i.test(url)){toast('抖音/B站短链需后端解析，暂不支持');return;}
+    const name=(url.split('/').pop()||'').replace(/\.[^.]+$/,'')||'链接视频';
+    const rec={id:Date.now(),name,type:'url',url,status:'learning',practiceTime:0,
+      segments:[],createdAt:Date.now(),lastPractice:Date.now()};
+    await save(rec);allVideos=await loadAll();renderList();await selectVideo(rec.id);
+    closeLink();document.getElementById('linkInput').value='';
+    toast('已导入链接：'+name);
+  }
+
+  // ---------- 控制 ----------
+  document.getElementById('playBtn').onclick=()=>{
+    if(!currentVideo){toast('请先选择一支舞');return;}
+    if(video.paused)video.play();else video.pause();
+  };
+  video.addEventListener('play',()=>{startPractice();document.getElementById('playBtn').innerHTML='<span class="ic">⏸</span>暂停';});
+  video.addEventListener('pause',()=>{stopPractice();document.getElementById('playBtn').innerHTML='<span class="ic">▶</span>播放';});
+
+  document.getElementById('mirrorBtn').onclick=()=>{
+    const on=video.classList.toggle('mirrored');
+    document.getElementById('mirrorBtn').classList.toggle('on',on);
+    mirrorBadge.classList.toggle('show',on);
+    toast(on?'镜面已开启':'镜面已关闭');
+  };
+  document.getElementById('speedBtn').onclick=()=>document.getElementById('speedPanel').classList.toggle('show');
+  document.querySelectorAll('.speed-opt').forEach(opt=>{
+    opt.onclick=()=>{document.querySelectorAll('.speed-opt').forEach(o=>o.classList.remove('on'));
+      opt.classList.add('on');video.playbackRate=parseFloat(opt.dataset.rate);toast('倍速 '+opt.textContent);};
+  });
+  document.getElementById('segToggle').onclick=()=>{
+    if(!currentVideo){toast('请先选择一支舞');return;}segArea.classList.toggle('show');};
+  document.getElementById('markBtn').onclick=()=>{
+    if(!currentVideo){toast('请先选择一支舞');return;}
+    const t=video.currentTime;
+    if(markStart===null){markStart=t;toast('起点已标记 '+fmtClock(t)+'，再点一次标记终点');document.getElementById('markBtn').classList.add('on');}
+    else{
+      if(t<=markStart){toast('终点需在起点之后');markStart=null;document.getElementById('markBtn').classList.remove('on');return;}
+      const name=prompt('给这段起个名字（如 副歌 / Dance Break）：','段落')||'段落';
+      currentVideo.segments=currentVideo.segments||[];
+      currentVideo.segments.push({name,start:markStart,end:t});
+      currentVideo.segments.sort((a,b)=>a.start-b.start);
+      save(currentVideo);renderSegments();
+      markStart=null;document.getElementById('markBtn').classList.remove('on');toast('已添加段落：'+name);
+    }
+  };
+  function toggleLoop(idx){loopSeg=(loopSeg===idx)?null:idx;renderSegments();
+    toast(loopSeg===null?'已退出循环':'循环：'+(currentVideo.segments[idx].name));}
+  function deleteSeg(idx){currentVideo.segments.splice(idx,1);save(currentVideo);
+    if(loopSeg===idx)loopSeg=null;else if(loopSeg>idx)loopSeg--;renderSegments();}
+
+  video.addEventListener('timeupdate',()=>{
+    if(loopSeg!==null && currentVideo && currentVideo.segments[loopSeg]){
+      const s=currentVideo.segments[loopSeg];
+      if(video.currentTime>=s.end)video.currentTime=s.start;
+    }
+  });
+
+  (async()=>{allVideos=await loadAll();renderList();})();
+</script>
