@@ -227,6 +227,18 @@
   </div>
 </div>
 
+<div class="modal" id="nameModal">
+  <div class="modal-box">
+    <div class="modal-title">🎬 确认舞蹈名称</div>
+    <div class="modal-sub">自动识别了名字，不对可以直接改</div>
+    <input class="link-input" id="nameInput" placeholder="舞蹈名称">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeNameModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmName()">确认导入</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -330,18 +342,30 @@
       currentVideo.lastPractice=Date.now();save(currentVideo);renderList();}},1000);}
   function stopPractice(){if(practiceTimer){clearInterval(practiceTimer);practiceTimer=null;}}
 
-  // 上传（label 包裹 input，点击直接触发，无需 JS）
-  document.getElementById('fileInput').addEventListener('change',async e=>{
-    const file=e.target.files[0];if(!file)return;
-    toast('正在导入：'+file.name+'…');
-    try{
-      const rec={id:Date.now(),name:file.name.replace(/\.[^.]+$/,'')||'未命名舞蹈',type:'file',blob:file,
-        status:'learning',practiceTime:0,segments:[],createdAt:Date.now(),lastPractice:Date.now()};
-      await save(rec);allVideos=await loadAll();renderList();await selectVideo(rec.id);
-      toast('已导入：'+rec.name+(dbOK?'':'（当前环境无法持久保存）'));
-    }catch(err){toast('导入失败：'+err.message);console.error(err);}
+  // 上传：选择文件后，弹窗确认名称
+  let pendingFile=null;
+  document.getElementById('fileInput').addEventListener('change',e=>{
+    const file=e.target.files[0];
+    if(!file){e.target.value='';return;}
+    pendingFile=file;
+    document.getElementById('nameInput').value=file.name.replace(/\.[^.]+$/,'')||'未命名舞蹈';
+    document.getElementById('nameModal').classList.add('show');
     e.target.value='';
   });
+  function closeNameModal(){document.getElementById('nameModal').classList.remove('show');pendingFile=null;}
+  async function confirmName(){
+    const name=document.getElementById('nameInput').value.trim()||'未命名舞蹈';
+    const file=pendingFile;
+    closeNameModal();
+    if(!file)return;
+    toast('正在导入：'+name+'…');
+    try{
+      const rec={id:Date.now(),name,type:'file',blob:file,
+        status:'learning',practiceTime:0,segments:[],createdAt:Date.now(),lastPractice:Date.now()};
+      await save(rec);allVideos=await loadAll();renderList();await selectVideo(rec.id);
+      toast('已导入：'+name+(dbOK?'':'（当前环境无法持久保存）'));
+    }catch(err){toast('导入失败：'+err.message);console.error(err);}
+  }
 
   document.getElementById('linkBtn').onclick=()=>document.getElementById('linkModal').classList.add('show');
   function closeLink(){document.getElementById('linkModal').classList.remove('show');}
