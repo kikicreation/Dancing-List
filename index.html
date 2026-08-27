@@ -385,11 +385,16 @@
     else{
       if(t<=markStart){toast('终点需在起点之后');markStart=null;document.getElementById('markBtn').classList.remove('on');return;}
       const name=prompt('给这段起个名字（如 副歌 / Dance Break）：','段落')||'段落';
+      const start=markStart;
       currentVideo.segments=currentVideo.segments||[];
-      currentVideo.segments.push({name,start:markStart,end:t});
+      currentVideo.segments.push({name,start,end:t});
       currentVideo.segments.sort((a,b)=>a.start-b.start);
-      save(currentVideo);renderSegments();
-      markStart=null;document.getElementById('markBtn').classList.remove('on');toast('已添加段落：'+name);
+      save(currentVideo);
+      const idx=currentVideo.segments.findIndex(s=>s.start===start&&s.end===t);
+      loopSeg=idx;segArea.classList.add('show');renderSegments();
+      markStart=null;document.getElementById('markBtn').classList.remove('on');
+      video.currentTime=start;
+      toast('已添加「'+name+'」并开始循环，再点它可停止');
     }
   };
   function toggleLoop(idx){loopSeg=(loopSeg===idx)?null:idx;renderSegments();
